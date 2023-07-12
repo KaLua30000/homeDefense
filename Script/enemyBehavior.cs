@@ -7,38 +7,76 @@ public class enemyBehavior : MonoBehaviour
 {
     public GameObject target;
     public Animator animator;
-    public float speed;
+    public float speed = 200f;
     public float nextWaypointDistance = 3f ;
-    public Transform EnemyGFX;
+    private Transform EnemyGFX;
 
     private Path path;
     private Rigidbody2D rb;
     private Seeker seeker;
+
+    private enum State
+    {
+        Idle,
+        Move,
+        Attack
+    }
+    private State currentState;
+
     int currentWaypoint = 0;
     bool reachedEndOfPath = false;
 
 
     void Start()
     {
-        speed = 200f;
         EnemyGFX = GetComponent<Transform>();
         seeker = GetComponent<Seeker>();
         rb = GetComponent<Rigidbody2D>();
         InvokeRepeating("UpdatePath",0f,0.5f);
+
+        currentState = State.Idle;//設定狀態機初始值
+        StartCoroutine(StateMachineCoroutine());
     }
+
     void UpdatePath()
     {
         if(seeker.IsDone())
             seeker.StartPath(rb.position, target.transform.position ,OnPathComplete);
     }
 
+    IEnumerator StateMachineCoroutine() //狀態機
+    {
+        while (true)
+        {
+            switch (currentState)
+            {
+                case State.Idle:
+                    Debug.Log("Idle state");
+                    yield return new WaitForSeconds(2f);
+                    currentState = State.Move;
+                    break;
+                case State.Move:
+                    Debug.Log("Move state");
+                    yield return new WaitForSeconds(3f);
+                    currentState = State.Attack;
+                    break;
+                case State.Attack:
+                    Debug.Log("Attack state");
+                    yield return new WaitForSeconds(1f);
+                    currentState = State.Idle;
+                    break;
+            }
+        }
+    }
 
     void FixedUpdate()
     {
+        switchState();
+
         FlipGFX();
-        animator.SetFloat("SPEED",((rb.velocity.x)*(rb.velocity.x)+(rb.velocity.y)*(rb.velocity.y)*100f));
+        animator.SetFloat("SPEED",rb.velocity.magnitude);
         if(path == null)
-        return;
+            return;
 
         if (currentWaypoint >= path.vectorPath.Count)
         {
@@ -61,6 +99,11 @@ public class enemyBehavior : MonoBehaviour
         }
     }
 
+    void switchState()
+    {
+        
+    }
+
     void OnPathComplete(Path p)
     {
         if(!p.error)
@@ -72,7 +115,7 @@ public class enemyBehavior : MonoBehaviour
 
     void FlipGFX()
     {
-        if(rb.velocity.x>0.01f)
+        if(rb.velocity.x>0.0001f)
         {
             EnemyGFX.localScale = new Vector3(-1f , 1f , 1f);
         }

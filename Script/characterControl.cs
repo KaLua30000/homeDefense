@@ -4,18 +4,33 @@ using UnityEngine;
 
 public class characterControl : MonoBehaviour
 {
-    public float speed = 5f;
+    public float speed = 20f;
     private Rigidbody2D rb;
+    private Vector2 inputAxis; //輸入的WASD
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
     }
 
-    // Update is called once per frame
+
     void Update()
     {
-        float h = Input.GetAxis("Horizontal");//A、D或左右
-        float v = Input.GetAxis("Vertical");//W、S或上下
-        rb.velocity = (new Vector2(h , v)*speed);
+        Vector3 mousePosition = Input.mousePosition;
+        mousePosition.z = 10f; // 设置一个合适的z坐标，使得鼠标在相机视图中可见
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+        float angle = Mathf.Atan2(worldPosition.y-transform.position.y, worldPosition.x-transform.position.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+        inputAxis = new Vector2(Input.GetAxis("Horizontal"),Input.GetAxis("Vertical"));
+        rb.AddForce(inputAxis*speed);
+
+        if(Input.GetKeyDown(KeyCode.Space))
+            Dash();
     }
+
+    void Dash()
+    {
+        rb.AddForce(inputAxis*1000f);
+    }
+
 }
