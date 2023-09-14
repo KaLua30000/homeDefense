@@ -8,15 +8,12 @@ public class playerAttack : MonoBehaviour
     public float SubWeaponCD = 4;
     private float MainWeaponCDCounter = 0;
     private float SubWeaponCDCounter = 0;
-    public float moveSpeed = 5f;
+    public float ammoSpeed = 5f;
     public float ammoLifeTime = 2f;
     public GameObject MainAmmo;
     public GameObject SubAmmo;
+    public GameObject player;
     
-    void Start()
-    {
-        
-    }
 
     void Update()
     {
@@ -51,7 +48,7 @@ public class playerAttack : MonoBehaviour
     void FireAmmo(GameObject ammo)
     {
         // 生成预制体
-        GameObject spawnedPrefab = Instantiate(ammo, transform.position, Quaternion.identity);
+        GameObject spawnedPrefab = Instantiate(ammo, transform.position-transform.up, Quaternion.identity);
 
         // 获取生成的预制体的刚体组件
         Rigidbody2D prefabRigidbody = spawnedPrefab.GetComponent<Rigidbody2D>();
@@ -59,8 +56,10 @@ public class playerAttack : MonoBehaviour
         if (prefabRigidbody != null)
         {
             // 给预制体施加向前的速度
-            prefabRigidbody.velocity = -transform.up * moveSpeed;
+            ammo.GetComponent<selfDestruct>().setAttacker(player);
+            prefabRigidbody.velocity = -transform.up * ammoSpeed;
             spawnedPrefab.transform.rotation = transform.rotation;
+            
         }
     }
 
